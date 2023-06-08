@@ -78,3 +78,55 @@ it('Find pet by status', () => {
     expect(resultPetArray[0]).to.be.eql(pet);
   })
 })
+
+
+
+it('Update pet with form data', () => {
+  cy.log(`Update pet with id ${pet.id} using form data`)
+
+  pet.name = 'Bobik';
+  pet.status = 'pending'
+  cy.request({
+    method: 'POST',
+    url: `/pet/${pet.id}`,
+    form: true,
+    body: { 
+      id: pet.id, 
+      name: pet.name, 
+      status: pet.status 
+    }
+  
+
+  }).then( response => {
+    expect(response.status).to.be.equal(200);
+    expect(JSON.parse(response.body.message)).to.be.equal(pet.id);
+  })
+
+  cy.request('GET', `/pet/${pet.id}`).then( response => {
+    expect(response.status).to.be.equal(200);
+    expect(response.body.id).to.be.equal(pet.id);
+    expect(response.body.name).to.be.equal(pet.name);
+    expect(response.body.status).to.be.equal(pet.status);
+  })
+})
+
+it('Delete pet', () => {
+  cy.log(`Delete pet with id ${pet.id}`)
+  cy.request({
+    method: 'DELETE',
+    url: `/pet/${pet.id}`,
+  }).then( response => {
+    expect(response.status).to.be.equal(200);
+    expect(JSON.parse(response.body.message)).to.be.equal(pet.id);
+  })
+
+  cy.request({
+    method: 'GET',
+    url: `/pet/${pet.id}`,
+    failOnStatusCode: false
+  }).then( response => {
+    expect(response.status).to.be.equal(404);
+    expect(response.body.message).to.be.equal('Pet not found');
+  })
+})
+
